@@ -3,7 +3,7 @@ name: Update org README with repos (curl + jq)
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 3 * * 1' # every Monday 06:00 UTC (adjust as needed)
+    - cron: '0 3 * * 1' # every Monday 06:00 UTC
 
 permissions:
   contents: write
@@ -17,16 +17,11 @@ jobs:
         with:
           persist-credentials: true
 
-      - name: Ensure jq is available
-        run: |
-          # ubuntu-latest includes jq, but ensure it's present
-          if ! command -v jq >/dev/null 2>&1; then
-            sudo apt-get update && sudo apt-get install -y jq
-          fi
+      - name: Ensure jq exists
+        run: sudo apt-get update && sudo apt-get install -y jq
 
       - name: Build repo list and update README
         env:
-          # Optional: set ORG_PAT secret (recommended if you need to list private repos)
           TOKEN: ${{ secrets.ORG_PAT || github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
@@ -35,65 +30,48 @@ jobs:
           MARKER_START='<!-- REPO-LIST-START -->'
           MARKER_END='<!-- REPO-LIST-END -->'
 
-          # Determine org from owner of the current repository (owner/repo)
+          # Extract org (the owner part of "owner/repo")
           ORG="${GITHUB_REPOSITORY%%/*}"
           echo "Org detected: $ORG"
 
-          if [ -z "${TOKEN:-}" ]; then
-            echo "ERROR: No token available in secrets.ORG_PAT or github.token" >&2
-            exit 2
-          fi
-
-          # Fetch repos (first page up to 100). If you have >100 repos, consider adding pagination.
+          # Fetch repo list
           REPO_JSON=$(curl -s -H "Authorization: token $TOKEN" \
             "https://api.github.com/orgs/${ORG}/repos?per_page=100&type=all&sort=full_name")
 
-          # Build markdown with the exact jq line you supplied (with fallback description text)
-          REPO_LIST=$(printf '%s\n' "$REPO_JSON" | jq -r '.[] | "- [\(.name)](\(.html_url)): \(.description // "No description") (Updated: \(.updated_at[0:10]))"')
+          # Convert JSON to markdown
+          REPO_LIST=$(printf '%s\n' "$REPO_JSON" \
+            | jq -r '.[] | "- [\(.name)](\(.html_url)): \(.description // "No description") (Updated: \(.updated_at[0:10]))"')
 
-          # If README.md doesn't exist yet, start with an empty string
-          if [ ! -f README.md ]; then
-            echo "README.md not found — creating a new one."
-            touch README.md
-          fi
+          # Make sure README.md exists
+          [ -f README.md ] || touch README.md
 
-          # Create updated README in a temp file by replacing between markers if present,
-          # otherwise append a new section with markers.
           TMP=README.md.new
 
+          # Replace content between markers (using | as delimiter to avoid / conflicts)
           if grep -qF "$MARKER_START" README.md && grep -qF "$MARKER_END" README.md; then
-            # Use perl in single-string mode to replace the block between markers.
-            # Escape delimiter-sensitive characters in REPO_LIST for safe substitution.
-            ESCAPED_REPO_LIST=$(printf '%s\n' "$REPO_LIST" | perl -pe 's/\\/\\\\/g; s/\$/\\\$/g; s/@/\\@/g')
-            perl -0777 -pe "s/\Q$MARKER_START\E.*?\Q$MARKER_END\E/$MARKER_START\n\n$ESCAPED_REPO_LIST\n\n$MARKER_END/s" README.md > "$TMP"
+            perl -0777 -pe "s|${MARKER_START}.*?${MARKER_END}|${MARKER_START}\n\n${REPO_LIST}\n\n${MARKER_END}|s" README.md > "$TMP"
           else
-            # Append a section at the end
             {
               cat README.md
-              printf "\n%s\n\n" "$MARKER_START"
-              printf "%s\n\n" "$REPO_LIST"
-              printf "%s\n" "$MARKER_END"
+              echo
+              echo "$MARKER_START"
+              echo
+              echo "$REPO_LIST"
+              echo
+              echo "$MARKER_END"
             } > "$TMP"
           fi
 
-          # Compare and commit only if changed
-          if git --no-pager diff --no-index --quiet README.md "$TMP" >/dev/null 2>&1; then
-            echo "No changes to README.md. Exiting."
+          # Commit only if changed
+          if git diff --no-index --quiet README.md "$TMP"; then
+            echo "No changes."
             rm -f "$TMP"
             exit 0
           fi
 
-          # Overwrite README.md, configure git and commit
           mv "$TMP" README.md
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add README.md
-          git commit -m "chore: update org repo list in README" || echo "No commit needed"
-          # push using repo token (actions/checkout persisted credentials)
-          git push origin HEAD || (echo "Push failed" && exit 1)
-
-      - name: Show final README excerpt (for debug)
-        if: ${{ always() }}
-        run: |
-          echo "----- README excerpt -----"
-          sed -n '1,120p' README.md || true
+          git commit -m "chore: update org repo list in README" || true
+          git push origin HEAD
