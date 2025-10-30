@@ -13,43 +13,81 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
+        with:
+          persist-credentials: true
 
-      - name: Generate repo overview
+      - name: Ensure jq is available
+        run: |
+          # ubuntu-latest includes jq, but ensure it's present
+          if ! command -v jq >/dev/null 2>&1; then
+            sudo apt-get update && sudo apt-get install -y jq
+          fi
+
+      - name: Build repo list and update README
         env:
-          ORG: soilwise-he
+          # Optional: set ORG_PAT secret (recommended if you need to list private repos)
+          # TOKEN: ${{ secrets.ORG_PAT || github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
-          mkdir -p profile
-          
-          # Ensure your intro stays untouched
-          cat > profile/README.md <<'EOF'
-          echo "# SoilWise Horizon Europe" >> profile/README.md
-          echo "" >> profile/README.md
-          echo "Welcome at a co-creation space of the SoilWise Horizon Europe project. " >> profile/README.md
-          echo "" >> profile/README.md
-          echo "SoilWise Horizon Europe is a research project hosted by [ILVO Flanders](https://ilvo.vlaanderen.be/en/)  cofunded by EU under grant number [101112838](https://cordis.europa.eu/project/id/101112838)" >> profile/README.md
-          echo "" >> profile/README.md
-          echo "## Read more" >> profile/README.md
-          echo "" >> profile/README.md
-          echo "Read more about the project in [Cordis](https://cordis.europa.eu/project/id/101112838) or the [project website](https://soilwise-he.eu)" >> profile/README.md
-          echo "" >> profile/README.md
-          echo "---" >> profile/README.md
-          echo "" >> profile/README.md
+          set -euo pipefail
 
-          echo "## 📦 Repositories" >> profile/README.md
-          echo "_This section is auto-generated daily — last update: $(date -u '+%Y-%m-%d %H:%M:%S') UTC._" >> profile/README.md
-          echo "" >> profile/README.md
+          MARKER_START='<!-- REPO-LIST-START -->'
+          MARKER_END='<!-- REPO-LIST-END -->'
 
-          # Fetch and append repositories (up to 100)
-          curl -s "https://api.github.com/orgs/${ORG}/repos?per_page=100" \
-          | jq -r '.[] | "- [\(.name)](\(.html_url)): \(.description // "No description") (Updated: \(.updated_at[0:10]))"' \
-          >> profile/README.md
+          # Determine org from owner of the current repository (owner/repo)
+          ORG="${GITHUB_REPOSITORY%%/*}"
+          echo "Org detected: $ORG"
 
-      - name: Commit and push if changed
-        run: |
+          #if [ -z "${TOKEN:-}" ]; then
+          #  echo "ERROR: No token available in secrets.ORG_PAT or github.token" >&2
+          #  exit 2
+          #fi
+
+          # Fetch repos (first page up to 100). If you have >100 repos, consider adding pagination.
+          REPO_JSON=$(curl -s "https://api.github.com/orgs/${ORG}/repos?per_page=100&type=all&sort=full_name")
+
+          # Build markdown with the exact jq line you supplied (with fallback description text)
+          REPO_LIST=$(printf '%s\n' "$REPO_JSON" | jq -r '.[] | "- [\(.name)](\(.html_url)): \(.description // "No description") (Updated: \(.updated_at[0:10]))"')
+
+          # If README.md doesn't exist yet, start with an empty string
+          if [ ! -f README.md ]; then
+            echo "README.md not found — creating a new one."
+            touch README.md
+          fi
+
+          # Create updated README in a temp file by replacing between markers if present,
+          # otherwise append a new section with markers.
+          TMP=README.md.new
+
+          if grep -qF "$MARKER_START" README.md && grep -qF "$MARKER_END" README.md; then
+            # Use perl in single-string mode to replace the block between markers.
+            # Escape delimiter-sensitive characters in REPO_LIST for safe substitution.
+            ESCAPED_REPO_LIST=$(printf '%s\n' "$REPO_LIST" | perl -pe 's/\\/\\\\/g; s/\$/\\\$/g; s/@/\\@/g')
+            perl -0777 -pe "s/\Q$MARKER_START\E.*?\Q$MARKER_END\E/$MARKER_START\n\n$ESCAPED_REPO_LIST\n\n$MARKER_END/s" README.md > "$TMP"
+          else
+            # Append a section at the end
+            {
+              cat README.md
+              printf "\n%s\n\n" "$MARKER_START"
+              printf "%s\n\n" "$REPO_LIST"
+              printf "%s\n" "$MARKER_END"
+            } > "$TMP"
+          fi
+
+          # Compare and commit only if changed
+          if git --no-pager diff --no-index --quiet README.md "$TMP" >/dev/null 2>&1; then
+            echo "No changes to README.md. Exiting."
+            rm -f "$TMP"
+            exit 0
+          fi
+
+          # Overwrite README.md, configure git and commit
+          mv "$TMP" README.md
           git config user.name "github-actions[bot]"
-          git config user.email "github-actions@github.com"
-          git add profile/README.md
-          git diff --quiet && echo "No changes to commit" || \
-            (git commit -m "Auto-update repository overview" && git push)
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git commit -m "chore: update org repo list in README" || echo "No commit needed"
+          # push using repo token (actions/checkout persisted credentials)
+          git push origin HEAD || (echo "Push failed" && exit 1)
