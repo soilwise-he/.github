@@ -1,17 +1,16 @@
-name: Update Repository Overview
+name: Update org README with repos (curl + jq)
 
 on:
+  workflow_dispatch:
   schedule:
-    - cron: '0 3 * * *'   # Every night at 3 AM UTC
-  workflow_dispatch:       # Allow manual trigger
+    - cron: '0 3 * * 1' # every Monday 06:00 UTC (adjust as needed)
 
 permissions:
   contents: write
 
 jobs:
-  update:
+  update-readme:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -28,7 +27,7 @@ jobs:
       - name: Build repo list and update README
         env:
           # Optional: set ORG_PAT secret (recommended if you need to list private repos)
-          # TOKEN: ${{ secrets.ORG_PAT || github.token }}
+          TOKEN: ${{ secrets.ORG_PAT || github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
           set -euo pipefail
@@ -40,13 +39,14 @@ jobs:
           ORG="${GITHUB_REPOSITORY%%/*}"
           echo "Org detected: $ORG"
 
-          #if [ -z "${TOKEN:-}" ]; then
-          #  echo "ERROR: No token available in secrets.ORG_PAT or github.token" >&2
-          #  exit 2
-          #fi
+          if [ -z "${TOKEN:-}" ]; then
+            echo "ERROR: No token available in secrets.ORG_PAT or github.token" >&2
+            exit 2
+          fi
 
           # Fetch repos (first page up to 100). If you have >100 repos, consider adding pagination.
-          REPO_JSON=$(curl -s "https://api.github.com/orgs/${ORG}/repos?per_page=100&type=all&sort=full_name")
+          REPO_JSON=$(curl -s -H "Authorization: token $TOKEN" \
+            "https://api.github.com/orgs/${ORG}/repos?per_page=100&type=all&sort=full_name")
 
           # Build markdown with the exact jq line you supplied (with fallback description text)
           REPO_LIST=$(printf '%s\n' "$REPO_JSON" | jq -r '.[] | "- [\(.name)](\(.html_url)): \(.description // "No description") (Updated: \(.updated_at[0:10]))"')
@@ -91,3 +91,9 @@ jobs:
           git commit -m "chore: update org repo list in README" || echo "No commit needed"
           # push using repo token (actions/checkout persisted credentials)
           git push origin HEAD || (echo "Push failed" && exit 1)
+
+      - name: Show final README excerpt (for debug)
+        if: ${{ always() }}
+        run: |
+          echo "----- README excerpt -----"
+          sed -n '1,120p' README.md || true
