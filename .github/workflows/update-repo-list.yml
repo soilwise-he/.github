@@ -24,20 +24,18 @@ jobs:
           
           # Ensure your intro stays untouched
           cat > profile/README.md <<'EOF'
-# SoilWise Horizon Europe
-
-Welcome at a co-creation space of the SoilWise Horizon Europe project. 
-
-SoilWise Horizon Europe is a research project hosted by [ILVO Flanders](https://ilvo.vlaanderen.be/en/)  cofunded by EU under grant number 
-[101112838](https://cordis.europa.eu/project/id/101112838)
-
-## Read more
-
-Read more about the project in [Cordis](https://cordis.europa.eu/project/id/101112838) or the [project website](https://soilwise-he.eu)
-
----
-
-EOF
+          echo "# SoilWise Horizon Europe" >> profile/README.md
+          echo "" >> profile/README.md
+          echo "Welcome at a co-creation space of the SoilWise Horizon Europe project. " >> profile/README.md
+          echo "" >> profile/README.md
+          echo "SoilWise Horizon Europe is a research project hosted by [ILVO Flanders](https://ilvo.vlaanderen.be/en/)  cofunded by EU under grant number [101112838](https://cordis.europa.eu/project/id/101112838)" >> profile/README.md
+          echo "" >> profile/README.md
+          echo "## Read more" >> profile/README.md
+          echo "" >> profile/README.md
+          echo "Read more about the project in [Cordis](https://cordis.europa.eu/project/id/101112838) or the [project website](https://soilwise-he.eu)
+          echo "" >> profile/README.md
+          echo "---" >> profile/README.md
+          echo "" >> profile/README.md
 
           echo "## 📦 Repositories" >> profile/README.md
           echo "_This section is auto-generated daily — last update: $(date -u '+%Y-%m-%d %H:%M:%S') UTC._" >> profile/README.md
