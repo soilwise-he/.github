@@ -1,2 +1,41 @@
 # .github
 A repository to facilitate co-creation of project deliverables.
+
+<!-- REPO-LIST-START -->
+
+- [.github](https://github.com/soilwise-he/.github): A repository to facilitate co-creation of project deliverables. (Updated: 2025-10-30)
+- [Calendar](https://github.com/soilwise-he/Calendar): repository containing important project meetings with impact on developmental work (Updated: 2024-09-02)
+- [catalogue-ui](https://github.com/soilwise-he/catalogue-ui): a user interface for the catalogue component (Updated: 2025-02-26)
+- [dashboard](https://github.com/soilwise-he/dashboard): a dashboard to find resources (and answers) (Updated: 2025-06-02)
+- [data-download](https://github.com/soilwise-he/data-download): a component to facilitate downloads of resources  (Updated: 2024-03-29)
+- [demo-zenodo-neo4j-llm-ilvo](https://github.com/soilwise-he/demo-zenodo-neo4j-llm-ilvo): a demo presented by ILVO for extracting metadata from Zenodo and providing knowledge accessible via a LLM (Updated: 2024-03-06)
+- [development-environment-and-infrastructure](https://github.com/soilwise-he/development-environment-and-infrastructure): A repository containing all requirements and issues needed to set up a development and production environment for the technological activities related to the development and implementation of the SoilWise Repository (Updated: 2024-04-24)
+- [governance](https://github.com/soilwise-he/governance): a repository to capture tasks which should be resolved at the governance level (Updated: 2024-03-28)
+- [harvesters](https://github.com/soilwise-he/harvesters): No description (Updated: 2025-07-16)
+- [inspire_soil_gpkg_template](https://github.com/soilwise-he/inspire_soil_gpkg_template): This repository hosts the design of a template for a relational database to capture soil data according the INSPIRE soil data model (Updated: 2024-03-12)
+- [KG-decision-support](https://github.com/soilwise-he/KG-decision-support): No description (Updated: 2025-10-20)
+- [link-liveliness-assessment](https://github.com/soilwise-he/link-liveliness-assessment): No description (Updated: 2025-07-09)
+- [metadata-augmentation](https://github.com/soilwise-he/metadata-augmentation): use nlp/llm on a resource to augment metadata statements about a resource (Updated: 2025-10-02)
+- [metadata-validator](https://github.com/soilwise-he/metadata-validator): a component which validates metadata records on completeness (Updated: 2025-03-04)
+- [natural-language-querying](https://github.com/soilwise-he/natural-language-querying): Application component that provides Natural Language Querying (NLQ) services, making knowledge stored in a graph database accessible for e.g. a ChatBot UI. (Updated: 2025-09-13)
+- [PostGreSQL](https://github.com/soilwise-he/PostGreSQL): a relational database storage for Soilwise (Updated: 2024-05-16)
+- [pycsw](https://github.com/soilwise-he/pycsw): an implentation of pycsw for soilwise (Updated: 2024-09-30)
+- [similarity-finder](https://github.com/soilwise-he/similarity-finder): a component which finds similarities in a set of statements about a resource (Updated: 2025-09-30)
+- [soil-health](https://github.com/soilwise-he/soil-health): a namespace for soilwise assets (Updated: 2025-04-09)
+- [soil-health-knowledge-graph](https://github.com/soilwise-he/soil-health-knowledge-graph): Repository for the soil health knowledge graph (Updated: 2025-10-29)
+- [soil-vocabs](https://github.com/soilwise-he/soil-vocabs): No description (Updated: 2025-10-23)
+- [soilinfohub](https://github.com/soilwise-he/soilinfohub): a dataset registry as maintained by the ejpsoil community (Updated: 2024-06-04)
+- [soilwise-architecture](https://github.com/soilwise-he/soilwise-architecture): A repository to co create the SoilWise HE architecture (Updated: 2025-10-22)
+- [SoilWise-documentation](https://github.com/soilwise-he/SoilWise-documentation): No description (Updated: 2025-10-16)
+- [soilwise-he.github.io](https://github.com/soilwise-he/soilwise-he.github.io): the repository shows content for https://soilwise-he.github.io (Updated: 2025-01-09)
+- [soilwise-ontology](https://github.com/soilwise-he/soilwise-ontology): the soilwise ontology is a model for a knowledge graph including datasets, organisations and repositories (Updated: 2025-10-29)
+- [Soilwise-Project-Backlog](https://github.com/soilwise-he/Soilwise-Project-Backlog): This README file contains a guideline for using this github soilwise-he repository as a backlog for the Soilwise project (Updated: 2024-08-19)
+- [Soilwise-userstory-epics](https://github.com/soilwise-he/Soilwise-userstory-epics): The Soilwise project aims to develop an open access knowledge and data repository to safeguard soils. This repo is a placeholder to steer the functional requirements of the system. (Updated: 2025-06-17)
+- [summary-dashboard](https://github.com/soilwise-he/summary-dashboard): Repository for Apache Superset Dashboard displaying summary statistics of SoilWise Catalogue content (Updated: 2025-06-02)
+- [triplestore-virtuoso](https://github.com/soilwise-he/triplestore-virtuoso): a triple store to store the soilwise knowledge graph (Updated: 2024-05-16)
+- [UC2-ISRIC-vocabulary-viewer](https://github.com/soilwise-he/UC2-ISRIC-vocabulary-viewer): A hierachical vocabulary viewer for soil procedures. (Updated: 2025-10-02)
+- [UC4-C2-resource-annotation](https://github.com/soilwise-he/UC4-C2-resource-annotation): A set of conventions and tools to support resource publication (reports, data, educational materials)  (Updated: 2025-09-05)
+- [usage-statistics](https://github.com/soilwise-he/usage-statistics): No description (Updated: 2024-03-29)
+- [widoco-action](https://github.com/soilwise-he/widoco-action): a repository to run widoco as a github action; widoco builds docs for knowledge graphs (Updated: 2025-05-16)
+
+<!-- REPO-LIST-END -->
