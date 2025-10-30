@@ -1,0 +1,57 @@
+name: Update Repository Overview
+
+on:
+  schedule:
+    - cron: '0 3 * * *'   # Every night at 3 AM UTC
+  workflow_dispatch:       # Allow manual trigger
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Generate repo overview
+        env:
+          ORG: soilwise-he
+        run: |
+          mkdir -p profile
+          
+          # Ensure your intro stays untouched
+          cat > profile/README.md <<'EOF'
+# SoilWise Horizon Europe
+
+Welcome at a co-creation space of the SoilWise Horizon Europe project. 
+
+SoilWise Horizon Europe is a research project hosted by [ILVO Flanders](https://ilvo.vlaanderen.be/en/)  cofunded by EU under grant number 
+[101112838](https://cordis.europa.eu/project/id/101112838)
+
+## Read more
+
+Read more about the project in [Cordis](https://cordis.europa.eu/project/id/101112838) or the [project website](https://soilwise-he.eu)
+
+---
+
+EOF
+
+          echo "## 📦 Repositories" >> profile/README.md
+          echo "_This section is auto-generated daily — last update: $(date -u '+%Y-%m-%d %H:%M:%S') UTC._" >> profile/README.md
+          echo "" >> profile/README.md
+
+          # Fetch and append repositories (up to 100)
+          curl -s "https://api.github.com/orgs/${ORG}/repos?per_page=100" \
+          | jq -r '.[] | "- [\(.name)](\(.html_url)): \(.description // "No description") (Updated: \(.updated_at[0:10]))"' \
+          >> profile/README.md
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions@github.com"
+          git add profile/README.md
+          git diff --quiet && echo "No changes to commit" || \
+            (git commit -m "Auto-update repository overview" && git push)
