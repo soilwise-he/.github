@@ -32,7 +32,7 @@ jobs:
           echo "" >> profile/README.md
           echo "## Read more" >> profile/README.md
           echo "" >> profile/README.md
-          echo "Read more about the project in [Cordis](https://cordis.europa.eu/project/id/101112838) or the [project website](https://soilwise-he.eu)
+          echo "Read more about the project in [Cordis](https://cordis.europa.eu/project/id/101112838) or the [project website](https://soilwise-he.eu)" >> profile/README.md
           echo "" >> profile/README.md
           echo "---" >> profile/README.md
           echo "" >> profile/README.md
